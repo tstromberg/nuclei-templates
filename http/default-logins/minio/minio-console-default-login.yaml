@@ -1,0 +1,41 @@
+id: minio-console-default-login
+
+info:
+  name: MinIO Console Default Login
+  author: tstromberg
+  severity: high
+  description: Minio default admin credentials were discovered.
+  reference:
+    - https://docs.min.io/docs/minio-quickstart-guide.html#
+  classification:
+    cvss-metrics: CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:L/A:L
+    cvss-score: 8.3
+    cwe-id: CWE-522
+  tags: default-login,minio
+
+http:
+  - raw:
+      - |
+        POST /api/v1/login HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/json
+
+        {"accessKey":"{{username}}","secretKey":"{{password}}"}
+
+    payloads:
+      username:
+        - minioadmin
+      password:
+        - minioadmin
+    attack: pitchfork
+
+    matchers:
+      - type: dsl
+        dsl:
+          - "contains(tolower(server), 'minio') && status_code==204"
+
+    extractors:
+      - type: kval
+        part: header
+        kval:
+          - Server
